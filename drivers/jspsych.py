@@ -12,8 +12,16 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 from .base import ExpfactoryRobot
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import UnexpectedAlertPresentException
+
+from selenium.common.exceptions import (
+    WebDriverException, 
+    UnexpectedAlertPresentException, 
+    NoSuchElementException,
+    TimeoutException
+)
+
 from expfactory.logger import bot
+from random import choice
 from time import sleep
 import re
 import os
@@ -61,7 +69,7 @@ class JsPsychRobot(ExpfactoryRobot):
         bot.log("FINISHING TEST OF EXPERIMENT")
 
 
-    def get_continue_key(block, block_tag="cont_key"):
+    def get_continue_key(self, block, block_tag="cont_key"):
         '''get_continue_key for a black, assuming key in jspsych data structure
            is cont_key
         '''
@@ -92,83 +100,29 @@ class JsPsychRobot(ExpfactoryRobot):
 
         # Pause from the last block
         sleep(float(pause_time)/1000 + wait_time/1000) # convert milliseconds to seconds
-        wait_time = 0
 
         # Get the current trial (not defined on first page)
         block = self.browser.execute_script("return jsPsych.currentTrial();")
-
-        wait_time = wait_time + pause_time
-
-        if "timing_post_trial" in block:
-            wait_time = wait_time + block["timing_post_trial"]
-        if "timing_feedback_duration" in block:
-            wait_time = wait_time + block["timing_feedback_duration"]
+        wait_time = self._update_wait_time(block, pause_time, wait_time)
 
         # This is typically for instruction text, etc.
-        if "pages" in block and not re.search("survey-multi-choice",block["type"]):
-            number_pages = len(block["pages"])
-            for p in range(number_pages):
-                if "cont_key" in block:
-                    continue_key = get_continue_key(block)
-                elif "show_clickable_nav" in block:
-                    if block["show_clickable_nav"] == True:  
-                        try:  
-                            self.browser.execute_script("document.querySelector('#jspsych-instructions-next').click();")
-                        except WebDriverException as e:
-                            pass
-                elif 'key_forward' in block:
-                    continue_key = key_lookup(block["key_forward"])
-                    self.browser.find_element_by_tag_name('html').send_keys(continue_key)
-                # Give time for page to reload 
-                sleep(1)
+        if "pages" in block and not re.search("survey-multi-choice", block["type"]):
+            self._forward_pages(block)
+
 
         # This is for the experiment
         elif "timeline" in block:
-            timeline = block["timeline"]
-            for time in timeline:
-                if "choices" in block:
-                    if len(block["choices"])>0:
-                        choices = block["choices"]
-                        # Make a random choice
-                        random_choice = choice(choices,1)[0]
-                        continue_key = key_lookup(random_choice)
-                        self.browser.find_element_by_tag_name('html').send_keys(continue_key)
-                    elif "button_class" in time:
-                        self.browser.execute_script("document.querySelector('.%s').click();" %time["button_class"])
-                # Give time for page to reload 
-                sleep(1)
+            self._forward_timeline(block)
 
         elif "button_class" in block:
-            try:
-                buttons = browser.find_elements_by_class_name('%s' %block["button_class"])
-                button = choice(buttons,1)[0]
-                if button.is_enabled() == False:
-                    self.browser.execute_script('document.getElementsByClassName("%s")[0].disabled = false' %block["button_class"])
-                button.click()
-                sleep(0.5)
-            except WebDriverException as e:
-                pass
-
+            self._buttons_click(block)
 
         elif "cont_key" in block:
             continue_key = self.get_continue_key(block)
             self.browser.find_element_by_tag_name('html').send_keys(continue_key)
 
         elif "choices" in block:
-            choices = block["choices"]
-            if choices != None and len(choices) > 0:
-                try:
-                    random_choice = choice(choices,1)[0]
-                    continue_key = key_lookup(random_choice)
-                    self.browser.find_element_by_tag_name('html').send_keys(continue_key)
-                except ValueError:
-                    bot.log("ValueError, %s found as choices." %(choices))
-            else:
-                    self.browser.find_element_by_tag_name('html').send_keys(Keys.ENTER)
-            if "type" in block:
-                if "type" == "writing":
-                    self.browser.execute_script("document.querySelector('#jspsych-writing-box').text = 'beep boop';")
-
+            self._forward_choices(block)
 
         if "type" in block:
 
@@ -184,6 +138,11 @@ class JsPsychRobot(ExpfactoryRobot):
             elif re.search("survey-text",block["type"]):
                 self._text_response()
 
+            # Writing box
+            elif re.search("writing",block["type"]):
+                self.browser.execute_script("document.querySelector('#jspsych-writing-box').text = 'beep boop';")
+
+
         elif "key_answer" in block:
             continue_key = self.get_continue_key(block, block_tag="key_answer")
             self.browser.find_element_by_tag_name('html').send_keys(continue_key)
@@ -192,6 +151,20 @@ class JsPsychRobot(ExpfactoryRobot):
             self._close_fullscreen()
 
         return wait_time,finished
+
+
+    def _update_wait_time(self, block, pause_time, wait_time):
+        '''update the wait time based on timing post trial and feedback duration
+           defined in the experiment timeline
+        '''
+        wait_time = wait_time + pause_time
+
+        if "timing_post_trial" in block:
+            wait_time = wait_time + block["timing_post_trial"]
+        if "timing_feedback_duration" in block:
+            wait_time = wait_time + block["timing_feedback_duration"]
+        return wait_time
+
 
     ############################################################################
     # Specific Browser Interactions
@@ -233,7 +206,87 @@ class JsPsychRobot(ExpfactoryRobot):
         except WebDriverException as e:
              pass
 
-    # Fullscreen
+
+    # Buttons
+
+    def _buttons_click(self, block):
+        '''find and undisable buttons, and click them.
+        '''
+        try:
+            buttons = browser.find_elements_by_class_name('%s' %block["button_class"])
+            button = choice(buttons,1)[0]
+            if button.is_enabled() is False:
+                self.browser.execute_script('document.getElementsByClassName("%s")[0].disabled = false' %block["button_class"])
+            button.click()
+            sleep(0.5)
+        except WebDriverException as e:
+            pass
+
+
+    def _forward_choices(self, block):
+        '''move through one or more choices in a timeline, including a writing
+           block
+        '''
+        choices = block["choices"]
+        if choices and len(choices) > 0:
+            try:
+                random_choice = choice(choices)
+                continue_key = self.key_lookup(random_choice)
+                self.browser.find_element_by_tag_name('html').send_keys(continue_key)
+            except ValueError:
+                bot.log("ValueError, %s found as choices." %(choices))
+        else:
+            self.browser.find_element_by_tag_name('html').send_keys(Keys.ENTER)
+
+
+    # Pages and Timeline
+
+    def _forward_pages(self, block):
+        '''detect and move forward through a number of pages
+        '''
+
+        number_pages = len(block["pages"])
+        for p in range(number_pages):
+
+            # Case 1: continue key
+            if "cont_key" in block:
+                continue_key = self.get_continue_key(block)
+
+            elif "show_clickable_nav" in block:
+
+                if block["show_clickable_nav"] is True:  
+                    self._close_instructions()
+
+                elif 'key_forward' in block:
+                    continue_key = self.key_lookup(block["key_forward"])
+                    self.browser.find_element_by_tag_name('html').send_keys(continue_key)
+
+                # Give time for page to reload 
+                sleep(1)
+
+    def _forward_timeline(self, block):
+        '''detect and move forward through a timeline
+        '''
+
+        timeline = block["timeline"]
+        for timepoint in timeline:
+            if "choices" in block:
+                if len(block["choices"])>0:
+                    choices = block["choices"]
+
+                    # Make a random choice
+                    random_choice = choice(choices,1)[0]
+                    continue_key = self.key_lookup(random_choice)
+                    self.browser.find_element_by_tag_name('html').send_keys(continue_key)
+                elif "button_class" in timepoint:
+                    self.browser.execute_script("document.querySelector('.%s').click();" %timepoint["button_class"])
+
+            # Give time for page to reload 
+            sleep(1)
+
+
+
+    # Fullscreen and Instructions
 
     def _close_fullscreen(self):
         ''' close_fullscreen will check if the jspsych experiment is waiting
@@ -245,6 +298,16 @@ class JsPsychRobot(ExpfactoryRobot):
                 self.browser.execute_script("document.querySelector('#jspsych-fullscreen-btn').click();")
             except WebDriverException as e:
                 pass
+
+
+    def _close_instructions(self):
+        ''' close_instructions will close instructions prompts
+        '''
+        try:  
+            self.browser.execute_script("document.querySelector('#jspsych-instructions-next').click();")
+        except WebDriverException as e:
+            pass
+
 
     # Progress
     def _isfinished(self):

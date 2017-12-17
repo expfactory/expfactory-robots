@@ -10,6 +10,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 '''
 
 from .base import ExpfactoryRobot
+from time import sleep
+import os
+from expfactory.logger import bot
 from selenium.common.exceptions import UnexpectedAlertPresentException
 
 class SurveyRobot(ExpfactoryRobot):
@@ -58,8 +61,9 @@ class SurveyRobot(ExpfactoryRobot):
 
         bot.log("FINISHING TEST OF SURVEY")
 
-    # Stop the server
-    self.httpd.server_close()
+        # Stop the server
+        self.httpd.server_close()
+
 
     def advance_survey(self):
         '''click the next button and fill in current page question content / questions

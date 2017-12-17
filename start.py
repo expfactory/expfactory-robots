@@ -12,6 +12,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 '''
 
 import argparse
+from expfactory.logger import bot
 import sys
 import os
 
@@ -27,9 +28,13 @@ def get_parser():
                         help="the survey robot to recruit!",
                         type=str, default="jspsych")
 
-    parser.add_argument("--folder", dest='folder', 
-                         help="survey folder for the robot to test (default is PWD)", 
-                         type=str, default=None)
+    parser.add_argument("--browser",'-b', dest='browser', 
+                        choices=['Firefox', 'Chrome'],
+                        help="browser driver to use for the robot",
+                        type=str, default="Chrome")
+
+    parser.add_argument('folders', nargs="+",
+                        help='experiments for robot testing')
 
     return parser
 
@@ -44,15 +49,9 @@ def main():
 
     print('Recruiting %s robot!' %args.robot)
 
-    folder = args.folder
-    if folder is None:
-        folder = os.getcwd()
-    folder = os.path.abspath(folder)
-    print('[folder] %s' %folder)
-
-    if not os.path.exists(folder):
-        bot.error("Cannot find %s, check that path exists." %folder)
-        sys.exit(1)
+    folders = args.folders
+    if len(folders) == 0:
+        folders = [os.getcwd()]
 
     # The drivers must be on path
     here = os.path.abspath(os.path.dirname(__file__))
@@ -64,8 +63,18 @@ def main():
     elif args.robot == 'survey':
         from drivers.survey import SurveyRobot as Robot
 
-    robot = Robot()
-    robot.validate(folder)
+    robot = Robot(browser=args.browser)
+    for folder in folders:
+        folder = os.path.abspath(folder)
+
+        if not os.path.exists(folder):
+            bot.error("Cannot find %s, check that path exists." %folder)
+        else:   
+            print('[folder] %s' %folder)
+            robot.validate(folder)
+
+    # Clean up shop!
+    robot.stop()
 
 if __name__ == '__main__':
     main()    

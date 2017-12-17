@@ -9,12 +9,7 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 '''
 
-from selenium.common.exceptions import (
-    WebDriverException, 
-    UnexpectedAlertPresentException, 
-    NoSuchElementException
-)
-
+from selenium.common.exceptions import TimeoutException
 from expfactory.validator import ExperimentValidator
 from expfactory.logger import bot
 
@@ -26,6 +21,7 @@ from http.server import SimpleHTTPRequestHandler
 from socketserver import TCPServer
 import webbrowser
 import json
+import shutil
 import re
 import sys
 import os
@@ -76,6 +72,9 @@ class ExpfactoryRobot(object):
         self.started = True
         self.pause_time = 100
         self.browser = None
+        self.driver = "Chrome"
+        if "browser" in kwargs:
+            self.driver = kwargs['browser']
 
 
     def validate(self, folder):
@@ -85,11 +84,14 @@ class ExpfactoryRobot(object):
             
         validator = ExperimentValidator()
         valid = validator.validate(folder)
+
         if valid is True:
 
-            # STOPPED HERE - browser is opening, need to validate
+            # IF missing favicon, add
+            self._check_favicon(folder)
+
             valid = self._validate(folder)
-            bot.log("[valid]: %s, stopping web server..." % valid)
+            bot.log("[done] stopping web server...")
             self.httpd.server_close()
         else:
             bot.warning('%s is not valid, skipping robot testing.' %folder)
@@ -100,6 +102,15 @@ class ExpfactoryRobot(object):
         '''
         raise NotImplementedError
 
+
+    def _check_favicon(self, folder):
+        '''add the expfactory favicon if the user doesn't already have one.
+        '''
+        here = "%s/favicon.ico" %os.path.abspath(os.path.dirname(__file__))
+        there = '%s/favicon.ico' %folder
+        if not os.path.exists(there):
+            shutil.copyfile(here, there)
+
     def check_errors(self):
    
         if self.browser is not None:
@@ -109,10 +120,13 @@ class ExpfactoryRobot(object):
                 assert_equal(log_entry["level"] in ["WARNING","INFO"],True)
 
 
-    def get_browser(self,name="Chrome"):
+    def get_browser(self,name=None):
         '''get_browser 
            return a FireFox browser if it hasn't been initialized yet
         '''
+        if name is None:
+            name=self.driver
+
         if self.browser is None:
             if name.lower() == "Firefox":
                 self.browser = webdriver.Firefox()
@@ -121,12 +135,26 @@ class ExpfactoryRobot(object):
         return self.browser
 
     
-    def get_page(self,url):
+    def get_page(self, url, name='Chrome'):
         '''get_page
-            open a particular url
+            open a particular url, checking for Timeout
+        '''
+        if self.browser is None:
+            self.browser = self.get_browser(name)
+
+        try:
+            return self.browser.get(url)
+        except TimeoutException:
+            bot.error('Browser request timeout. Are you connected to the internet?')
+            self.browser.close()
+            sys.exit(1)
+
+    def stop(self):
+        '''close any running browser or server, and shut down the robot
         '''
         if self.browser is not None:
-            return self.browser.get(url)
+            self.browser.close()
+        self.httpd.server_close() 
 
     # Run javascript and get output
     def run_javascript(browser,code):
