@@ -28,6 +28,10 @@ def get_parser():
                         help="the survey robot to recruit!",
                         type=str, default="jspsych")
 
+    parser.add_argument("--port",'-p', dest='port', 
+                        help="port to run webserver",
+                        type=int, default=None)
+
     parser.add_argument("--browser",'-b', dest='browser', 
                         choices=['Firefox', 'Chrome'],
                         help="browser driver to use for the robot",
@@ -63,7 +67,7 @@ def main():
     elif args.robot == 'survey':
         from drivers.survey import SurveyRobot as Robot
 
-    robot = Robot(browser=args.browser)
+    robot = Robot(browser=args.browser, port=args.port)
     for folder in folders:
         folder = os.path.abspath(folder)
 

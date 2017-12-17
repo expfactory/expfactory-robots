@@ -7,7 +7,7 @@ WORKDIR /opt
 RUN git clone https://www.github.com/expfactory/expfactory
 WORKDIR expfactory 
 RUN python3 setup.py install
-RUN python3 -m pip install pandas
+RUN python3 -m pip install selenium
 
 RUN mkdir /code  # for script
 WORKDIR /code
@@ -16,4 +16,4 @@ RUN chmod u+x /code/start.py
 RUN mkdir /data  # bind experiment folder to
 RUN apt-get clean
 
-ENTRYPOINT ["python3", "/code/start.py"]
+ENTRYPOINT ["python3", "/code/start.py", "--port", "3030"]

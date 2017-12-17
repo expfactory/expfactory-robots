@@ -1,10 +1,6 @@
 # Experiment Factory Robots
 
-This container will allow you to run a robot test for various kinds of experiments. Currently supported are surveys and jspsych experiments. The container is available on Docker Hub, or you can build it here using the Dockerfile:
-
-```
-docker build -t vanessa/expfactory-robots .
-```
+This set of scripts (and provided container) will allow you to run a robot test for various kinds of experiments. Currently supported are surveys and jspsych experiments.  Local (non container) use will be discussed first, followed by Docker.
 
 ## Setup
 
@@ -105,7 +101,47 @@ The same can be done for a survey! Let's now test bis-11
 python start.py --robot survey /tmp/bis11-survey
 ```
 
+The output is similar to jspsych, except we are progressing through a survey.
+
+```
+python start.py --robot survey /tmp/bis11-survey
+Recruiting survey robot!
+[folder] /tmp/bis11-survey
+LOG STARTING TEST OF SURVEY
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /css/material.blue-red.min.css HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /css/surveys.css HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /css/jquery-ui-1.10.4.custom.min.css HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /css/style.css HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /js/jquery-2.1.1.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /js/material.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /js/jquery-ui-1.10.4.custom.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /js/jquery.wizard.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /js/jquery.form-3.50.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /js/jquery.validate-1.12.0.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /css/images/ui-bg_flat_75_ffffff_40x100.png HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /css/images/ui-bg_highlight-soft_75_cccccc_1x100.png HTTP/1.1" 200 -
+127.0.0.1 - - [17/Dec/2017 07:09:38] "GET /favicon.ico HTTP/1.1" 200 -
+LOG Testing page 1
+LOG Testing page 2
+LOG Testing page 3
+LOG Testing page 4
+LOG Testing page 5
+LOG FINISHING TEST OF SURVEY
+LOG [done] stopping web server...
+```
 
 ## Docker Usage
 
-I am currently finish up the functions and writing tests... TBA!
+The above is much simpler to use in a Docker image! The container is available on Docker Hub, or you can build it here using the Dockerfile:
+
+```
+docker build -t vanessa/expfactory-robots .
+```
+
+To run it, you need to map the folder one level above your experiment (so we can validate the experiment folder name itself!) to `/data` in the container, and make sure to specify the port.
+
+```
+docker run -v /tmp:/data -p 3030:3030 vanessa/expfactory-robots /data/test-task
+```
+

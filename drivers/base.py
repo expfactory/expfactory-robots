@@ -64,7 +64,10 @@ class ExpfactoryRobot(object):
   
     def __init__(self, **kwargs):
         self.Handler = ExpfactoryServer
-        self.port = choice(range(8000,9999))
+        if "port" in kwargs:
+            self.port = kwargs['port']
+        else:       
+            self.port = choice(range(8000,9999))
         self.httpd = TCPServer(("", self.port), self.Handler)
         self.server = Thread(target=self.httpd.serve_forever)
         self.server.setDaemon(True)
