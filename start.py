@@ -73,6 +73,7 @@ def main():
 
     robot = Robot(browser=args.browser, port=args.port, headless=args.headless)
     for folder in folders:
+
         folder = os.path.abspath(folder)
 
         if not os.path.exists(folder):

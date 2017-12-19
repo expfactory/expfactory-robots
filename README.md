@@ -150,7 +150,7 @@ singularity run --bind /tmp:/data expfactory-robots.simg /data/test-task
 
 
 ## Docker Usage
-Note that this isn't fully tested and working, because of issues with the display and drivers. Please submit a pull request if you are able to get it working. My notes will be included here. To build the image:
+Note that this isn't fully tested and working, because of issues with the display and drivers. I have a feeling it would be a good idea to start with one of the [selenium bases](https://github.com/SeleniumHQ/docker-selenium), but I haven't tried it yet. Please submit a pull request if you are able to get it working. My notes will be included here. To build the image:
 
 ```
 docker build -t vanessa/expfactory-robots .
