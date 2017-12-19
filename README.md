@@ -2,6 +2,8 @@
 
 This set of scripts (and provided container) will allow you to run a robot test for various kinds of experiments. Currently supported are surveys and jspsych experiments.  Local (non container) use will be discussed first, followed by Docker.
 
+[![asciicast](https://asciinema.org/a/153497.png)](https://asciinema.org/a/153497?speed=3)
+
 ## Setup
 
 For the examples, we can clone the [test-task](https://www.github.com/expfactory-experiments/test-task) experiment and the [bis11-survey](https://www.github.com/expfactory-experiments/bis11-survey).
