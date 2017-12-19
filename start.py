@@ -30,7 +30,11 @@ def get_parser():
 
     parser.add_argument("--port",'-p', dest='port', 
                         help="port to run webserver",
-                        type=int, default=None)
+                        type=int, default=3030)
+
+    parser.add_argument("--headless", dest='headless',
+                        help="start a display before browser",
+                        action="store_true", default=False)
 
     parser.add_argument("--browser",'-b', dest='browser', 
                         choices=['Firefox', 'Chrome'],
@@ -67,7 +71,7 @@ def main():
     elif args.robot == 'survey':
         from drivers.survey import SurveyRobot as Robot
 
-    robot = Robot(browser=args.browser, port=args.port)
+    robot = Robot(browser=args.browser, port=args.port, headless=args.headless)
     for folder in folders:
         folder = os.path.abspath(folder)
 

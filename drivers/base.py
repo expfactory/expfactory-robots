@@ -68,6 +68,7 @@ class ExpfactoryRobot(object):
             self.port = kwargs['port']
         else:       
             self.port = choice(range(8000,9999))
+        bot.debug('Selected port is %s' %self.port)
         self.httpd = TCPServer(("", self.port), self.Handler)
         self.server = Thread(target=self.httpd.serve_forever)
         self.server.setDaemon(True)
@@ -75,6 +76,8 @@ class ExpfactoryRobot(object):
         self.started = True
         self.pause_time = 100
         self.browser = None
+        self.headless = False
+        self.display = None
         self.driver = "Chrome"
         if "browser" in kwargs:
             self.driver = kwargs['browser']
@@ -125,16 +128,17 @@ class ExpfactoryRobot(object):
 
     def get_browser(self,name=None):
         '''get_browser 
-           return a FireFox browser if it hasn't been initialized yet
+           return a browser if it hasn't been initialized yet
         '''
         if name is None:
             name=self.driver
 
+        service_log_path = "%s-driver.log" %name.lower()
         if self.browser is None:
             if name.lower() == "Firefox":
-                self.browser = webdriver.Firefox()
+                self.browser = webdriver.Firefox(service_log_path=service_log_path)
             else:
-                self.browser = webdriver.Chrome()
+                self.browser = webdriver.Chrome(service_log_path=service_log_path)
         return self.browser
 
     
@@ -158,6 +162,9 @@ class ExpfactoryRobot(object):
         if self.browser is not None:
             self.browser.close()
         self.httpd.server_close() 
+
+        if self.display is not None:
+            self.display.close()
 
     # Run javascript and get output
     def run_javascript(browser,code):

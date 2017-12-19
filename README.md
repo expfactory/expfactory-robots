@@ -23,7 +23,7 @@ cd expfactory
 python setup.py install
 ```
 
-and for Docker, you will need Docker.
+and for Singularity, you will need to [install Singularity](https://singularityware.github.io/install-linux).
 
 
 ## JsPsych Robot
@@ -131,17 +131,35 @@ LOG FINISHING TEST OF SURVEY
 LOG [done] stopping web server...
 ```
 
-## Docker Usage
+## Singularity Usage
+Singularity is ideal for this use case because of the seamless nature between the container and host. While a Dockerfile is provided in this repository, I ran into several issues with getting the drivers and displays working as expected. If you are able to help make a Docker image work please submit a pull request.
 
-The above is much simpler to use in a Docker image! The container is available on Docker Hub, or you can build it here using the Dockerfile:
+The first thing you want to do is again clone the repository, and build the image:
+
+```
+git clone https://www.github.com/expfactory/expfactory-robots
+cd expfactory-robots
+sudo singularity build expfactory-robots.simg Singularity
+```
+
+Then to run the image, you will basically want to bind the *parent* folder where your task is to `/data` in the container, and specify the path to the experiment *relative to `data`*
+
+```
+singularity run --bind /tmp:/data expfactory-robots.simg /data/test-task
+```
+
+
+## Docker Usage
+Note that this isn't fully tested and working, because of issues with the display and drivers. Please submit a pull request if you are able to get it working. My notes will be included here. To build the image:
 
 ```
 docker build -t vanessa/expfactory-robots .
 ```
 
-To run it, you need to map the folder one level above your experiment (so we can validate the experiment folder name itself!) to `/data` in the container, and make sure to specify the port.
+To run it, I again mapped the folder one level above your experiment (so we can validate the experiment folder name itself!) to `/data` in the container, and I also made sure to specify the port, because Docker doesn't have a seamless connection to the host like Singularity.
 
 ```
-docker run -v /tmp:/data -p 3030:3030 vanessa/expfactory-robots /data/test-task
+docker run -v /tmp:/data -p 3030:3030 -v /dev/shm:/dev/shm vanessa/expfactory-robots /data/test-task
 ```
 
+I didn't get beyond this point - I had various errors with the Gecko Driver an went back to using Singularity!
