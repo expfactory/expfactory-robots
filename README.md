@@ -132,13 +132,22 @@ LOG [done] stopping web server...
 ```
 
 ## Singularity Usage
-Singularity is ideal for this use case because of the seamless nature between the container and host. While a Dockerfile is provided in this repository, I ran into several issues with getting the drivers and displays working as expected. If you are able to help make a Docker image work please submit a pull request.
+Singularity is ideal for this use case because of the seamless nature between the container and host. We have a pre-built image for your use:
 
-The first thing you want to do is again clone the repository, and build the image:
+```
+singularity pull shub://expfactory/expfactory-robots
+```
+
+or if you want to build it yourself, the first thing you would want to do is again clone the repository:
 
 ```
 git clone https://www.github.com/expfactory/expfactory-robots
 cd expfactory-robots
+```
+
+and then build.
+
+```
 sudo singularity build expfactory-robots.simg Singularity
 ```
 
