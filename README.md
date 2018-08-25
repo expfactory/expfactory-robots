@@ -1,6 +1,12 @@
 # Experiment Factory Robots
 
-This set of scripts (and provided container) will allow you to run a robot test for various kinds of experiments. Currently supported are surveys and jspsych experiments.  Local (non container) use will be discussed first, followed by Docker.
+This set of scripts (and provided container) allow you to run a robot test for various kinds of experiments. Currently supported are:
+
+ - [surveys]()
+ - [jspsych experiments]()
+ - [labjs]()
+
+Local (non container) use will be discussed first, followed by Docker.
 
 [![asciicast](https://asciinema.org/a/153497.png)](https://asciinema.org/a/153497?speed=3)
 
@@ -27,6 +33,10 @@ python setup.py install
 
 and for Singularity, you will need to [install Singularity](https://singularityware.github.io/install-linux).
 
+
+## LabJS Robot
+
+**under development**
 
 ## JsPsych Robot
 
