@@ -166,7 +166,129 @@ class ExpfactoryRobot(object):
         if self.display is not None:
             self.display.close()
 
-    # Run javascript and get output
+
+    ############################################################################
+    # Specific Browser Interactions
+    ############################################################################
+
+  
+    # Radio Buttons
+
+    def _radio_click(self, div_id, sleep_time=2):
+        '''pass through a radio button block given a particular div id.
+           used for both radio buttonlist and survey multi choice blocks.
+        '''
+        try:
+            self.browser.execute_script("$(':radio').click();");
+            sleep(sleep_time)
+            self.browser.execute_script("document.querySelector('#%s').click();" % div_id)
+        except WebDriverException as e:
+            pass
+
+
+    # JavaScript
+
     def run_javascript(browser,code):
         if self.browser is not None:
             return browser.execute_script(code)
+
+
+
+    ############################################################################
+    # Keys
+    ############################################################################
+
+
+    def key_lookup(self, keyid):
+        lookup = {13:Keys.ENTER,
+                  8:Keys.BACKSPACE,
+                  9:Keys.TAB,
+                  16:Keys.SHIFT,
+                  17:Keys.CONTROL,
+                  18:Keys.ALT,
+                  19:Keys.PAUSE,
+                  27:Keys.ESCAPE,
+                  32:Keys.SPACE,
+                  33:Keys.PAGE_UP,
+                  34:Keys.PAGE_DOWN,
+                  35:Keys.END,
+                  36:Keys.HOME,
+                  37:Keys.LEFT,
+                  38:Keys.UP,
+                  39:Keys.RIGHT,
+                  40:Keys.DOWN,
+                  45:Keys.INSERT,
+                  46:Keys.DELETE,
+                  48:"0",
+                  49:"1",
+                  50:"2",
+                  51:"3",
+                  52:"4",
+                  53:"5",
+                  54:"6",
+                  55:"7",
+                  56:"8",
+                  57:"9",
+                  65:"a",
+                  66:"b",
+                  67:"c",
+                  68:"d",
+                  69:"e",
+                  70:"f",
+                  71:"g",
+                  72:"h",
+                  73:"i",
+                  74:"j",
+                  75:"k",
+                  76:"l",
+                  77:"m",
+                  78:"n",
+                  79:"o",
+                  80:"p",
+                  81:"q",
+                  82:"r",
+                  83:"s",
+                  84:"t",
+                  85:"u",
+                  86:"v",
+                  87:"w",
+                  88:"x",
+                  89:"y",
+                  90:"z",
+                  96:Keys.NUMPAD0,
+                  97:Keys.NUMPAD1,
+                  98:Keys.NUMPAD2,
+                  99:Keys.NUMPAD3,
+                  100:Keys.NUMPAD4,
+                  101:Keys.NUMPAD5,
+                  102:Keys.NUMPAD6,
+                  103:Keys.NUMPAD7,
+                  104:Keys.NUMPAD8,
+                  105:Keys.NUMPAD8,
+                  106:Keys.MULTIPLY,
+                  107:Keys.ADD,
+                  109:Keys.SUBTRACT,
+                  110:Keys.DECIMAL,
+                  111:Keys.DIVIDE,
+                  112:Keys.F1,
+                  113:Keys.F2,
+                  114:Keys.F3,
+                  115:Keys.F4,
+                  116:Keys.F5,
+                  117:Keys.F6,
+                  118:Keys.F7,
+                  119:Keys.F8,
+                  120:Keys.F9,
+                  121:Keys.F10,
+                  122:Keys.F11,
+                  123:Keys.F12,
+                  186:Keys.SEMICOLON,
+                  187:Keys.EQUALS,
+                  "leftarrow":Keys.LEFT,
+                  "rightarrow":Keys.RIGHT,
+                  "uparrow":Keys.UP,
+                  "downarrow":Keys.DOWN}
+        if keyid not in lookup:
+            if isinstance(keyid,str) or isinstance(keyid,unicode):
+                return str(keyid.lower())
+        return lookup[keyid]

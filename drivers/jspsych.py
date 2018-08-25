@@ -170,20 +170,6 @@ class JsPsychRobot(ExpfactoryRobot):
     # Specific Browser Interactions
     ############################################################################
 
-  
-    # Radio Buttons
-
-    def _radio_click(self, div_id, sleep_time=2):
-        '''pass through a radio button block given a particular div id.
-           used for both radio buttonlist and survey multi choice blocks.
-        '''
-        try:
-            self.browser.execute_script("$(':radio').click();");
-            sleep(sleep_time)
-            self.browser.execute_script("document.querySelector('#%s').click();" %div_id)
-        except WebDriverException as e:
-            pass
-
     def _survey_multi_choice(self):
         ''' complete a survey multi choice block
         '''
