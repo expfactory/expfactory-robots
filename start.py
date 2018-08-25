@@ -24,7 +24,7 @@ def get_parser():
     description="expfactory: generate survey from config.json and question file")
 
     parser.add_argument("--robot",'-r', dest='robot', 
-                        choices=['survey', 'jspsych'],
+                        choices=['survey', 'jspsych', 'labjs'],
                         help="the survey robot to recruit!",
                         type=str, default="jspsych")
 
@@ -70,6 +70,8 @@ def main():
         from drivers.jspsych import JsPsychRobot as Robot
     elif args.robot == 'survey':
         from drivers.survey import SurveyRobot as Robot
+    elif args.robot == 'labjs':
+        from drivers.labjs import LabJSRobot as Robot
 
     robot = Robot(browser=args.browser, port=args.port, headless=args.headless)
     for folder in folders:
