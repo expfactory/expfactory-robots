@@ -13,6 +13,7 @@ from selenium.common.exceptions import TimeoutException
 from expfactory.validator import ExperimentValidator
 from expfactory.logger import bot
 
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from random import choice
 from threading import Thread
@@ -133,15 +134,28 @@ class ExpfactoryRobot(object):
         if name is None:
             name=self.driver
 
-        service_log_path = "%s-driver.log" %name.lower()
+        log_path = "%s-driver.log" % name.lower()
+
         if self.browser is None:
+            options = self.get_options()
             if name.lower() == "Firefox":
-                self.browser = webdriver.Firefox(service_log_path=service_log_path)
+                self.browser = webdriver.Firefox(service_log_path=log_path)
             else:
-                self.browser = webdriver.Chrome(service_log_path=service_log_path)
+                self.browser = webdriver.Chrome(service_log_path=log_path,
+                                                chrome_options=options)
         return self.browser
 
-    
+
+    def get_options(self, width=1200, height=800):
+        '''return options for headless, no-sandbox, and custom width/height
+        '''
+        options = webdriver.ChromeOptions()
+        options.add_argument("headless")
+        options.add_argument("no-sandbox")
+        options.add_argument("window-size=%sx%s" %(width, height))
+        return options
+
+
     def get_page(self, url, name='Chrome'):
         '''get_page
             open a particular url, checking for Timeout
