@@ -174,7 +174,6 @@ jobs:
           paths:
             - cache/container.tar.gz
             - src
-            - paper
 
   update_cache:
     <<: *defaults
@@ -213,7 +212,6 @@ jobs:
           command: |
             source ${BASH_ENV}
             ls /tmp
-            ls /tmp/paper
             which container-diff-linux-amd64
             if [[ -n "${GITHUB_EMAIL:-}" ]];
                 then
