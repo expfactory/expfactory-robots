@@ -161,16 +161,17 @@ singularity run --bind /tmp:/data expfactory-robots.simg /data/test-task
 
 
 ## Docker Usage
-Note that this isn't fully tested and working, because of issues with the display and drivers. I have a feeling it would be a good idea to start with one of the [selenium bases](https://github.com/SeleniumHQ/docker-selenium), but I haven't tried it yet. Please submit a pull request if you are able to get it working. My notes will be included here. To build the image:
+To build the image:
 
 ```
-docker build -t vanessa/expfactory-robots .
+docker build -t expfactory/expfactory-robots .
 ```
 
 To run it, I again mapped the folder one level above your experiment (so we can validate the experiment folder name itself!) to `/data` in the container, and I also made sure to specify the port, because Docker doesn't have a seamless connection to the host like Singularity.
 
-```
-docker run -v /tmp:/data -p 3030:3030 -v /dev/shm:/dev/shm vanessa/expfactory-robots /data/test-task
+```bash
+PARENT_FOLDER=$(dirname $PWD)
+docker run -v $PARENT_FOLDER/:/data -p 3030:3030 expfactory/expfactory-robots /data/test-task
 ```
 
-I didn't get beyond this point - I had various errors with the Gecko Driver an went back to using Singularity!
+If you have issues, you may need to check the version of selenium and the Gecko Driver.
